@@ -1,0 +1,25 @@
+1、check style 安装
+The recommeded way to install the Eclipse Checkstyle Plug-in on Eclipse 3.2/3.3 is via the update site.
+1)	Within Eclipse go to Help->Software Updates->Find and Install 
+2)	Choose Search for new features to install and press Next 
+3)	Create a New Remote Site... 
+4)	Input a name to your liking (for instance Checkstyle Plug-in) and input the following URL: http://eclipse-cs.sf.net/update 
+5)	Click your way through the following pages to install the plug-in. 
+	注意：不要选择beta，仅选择checkstyle
+6)	Restart Eclipse
+
+2、配置方法（可选）
+1) 项目 > 属性 > CheckStyle，显示窗口CheckStyle
+2) 选择窗口Local check configuration
+点击按钮new，弹出窗口 Check Configration Property
+	Type：Project Relative Configuration
+	Name：xmgl
+	Location：/xmglweb/quality/xmgl.checkstyle
+点击按钮OK
+
+3、使用方法
+1) 检查，添加Checkstyle标记
+	项目 > Checkstyle > Check Code with Checkstyle
+2) 清除Checkstyle标记
+	项目 > Checkstyle > Clear Checkstyle Violations
+	

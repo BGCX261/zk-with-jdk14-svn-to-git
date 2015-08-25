@@ -1,0 +1,556 @@
+<?xml version="1.0"?>
+
+<project name="xmglweb" basedir="." default="usage">
+	<property file="build.properties" />
+
+	<property name="src.dir" value="src" />
+	<property name="web.dir" value="WebRoot" />
+	<property name="build.dir" value="${web.dir}/WEB-INF/classes" />
+
+	<!-- name may be same as ${ant.project.name}  -->
+	<property name="name" value="${ant.project.name}" />
+
+	<path id="master-classpath">
+		<fileset dir="${web.dir}/WEB-INF/lib">
+			<include name="*.jar" />
+		</fileset>
+		<!-- We need the servlet API classes: -->
+		<!--  * for Tomcat 5/6 use servlet-api.jar -->
+		<!--  * for other app servers - check the docs -->
+		<fileset dir="${appserver.lib}">
+			<include name="servlet*.jar" />
+		</fileset>
+		<pathelement path="${build.dir}" />
+	</path>
+
+	<target name="usage">
+		<echo message="" />
+		<echo message="${name} build file" />
+		<echo message="-----------------------------------" />
+		<echo message="" />
+		<echo message="Available targets are:" />
+		<echo message="" />
+		<echo message="build     --> Build the application" />
+		<echo message="deploy    --> Deploy application as directory" />
+		<echo message="deploywar --> Deploy application as a WAR file" />
+		<echo message="install   --> Install application in Tomcat" />
+		<echo message="reload    --> Reload application in Tomcat" />
+		<echo message="start     --> Start Tomcat application" />
+		<echo message="stop      --> Stop Tomcat application" />
+		<echo message="list      --> List Tomcat applications" />
+		<echo message="" />
+	</target>
+
+	<target name="compile" description="Compile main source tree java files">
+		<mkdir dir="${build.dir}" />
+		<javac destdir="${build.dir}" source="1.4" target="1.4" debug="true" encoding="utf-8" deprecation="false" optimize="false" failonerror="true">
+			<src path="${src.dir}" />
+			<classpath refid="master-classpath" />
+		</javac>
+	</target>
+
+	<target name="build" depends="compile, copymetafiles" description="Compile main source tree java files and copy resource">
+	</target>
+
+	<target name="deploy" depends="build" description="Deploy application">
+		<copy todir="${deploy.path}/${name}" preservelastmodified="true">
+			<fileset dir="${web.dir}">
+				<include name="**/*.*" />
+			</fileset>
+		</copy>
+	</target>
+
+	<!-- ================================= 
+          target: createwar              
+         ================================= -->
+	<target name="createwar" depends="build" description="create war file">
+		<war destfile="${name}.war" webxml="${web.dir}/WEB-INF/web.xml">
+			<fileset dir="${web.dir}">
+				<include name="**/*.*" />
+			</fileset>
+		</war>
+	</target>
+
+	<target name="deploywar" depends="build" description="Deploy application as a WAR file">
+		<war destfile="${name}.war" webxml="${web.dir}/WEB-INF/web.xml">
+			<fileset dir="${web.dir}">
+				<include name="**/*.*" />
+			</fileset>
+		</war>
+		<copy todir="${deploy.path}" preservelastmodified="true">
+			<fileset dir=".">
+				<include name="*.war" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="clean" description="Clean output directories">
+		<delete includeemptydirs="true">
+			<fileset dir="${build.dir}">
+				<include name="**/*" />
+				<exclude name="*.properties" />
+			</fileset>
+		</delete>
+		<delete file="${name}.war" />
+		<delete includeemptydirs="true">
+			<fileset dir="${quality.codestyle.dir}">
+				<include name="**/*" />
+			</fileset>
+		</delete>
+		<delete includeemptydirs="true">
+			<fileset dir="${quality.test.dir}">
+				<include name="**/*" />
+			</fileset>
+		</delete>
+	</target>
+
+	<target name="undeploy" description="Un-Deploy application">
+		<delete includeemptydirs="true">
+			<fileset dir="${deploy.path}/${name}">
+				<include name="**/*" />
+			</fileset>
+		</delete>
+	</target>
+
+
+	<!-- ============================================================== -->
+	<!-- Tomcat tasks - remove these if you don't have Tomcat installed -->
+	<!-- ============================================================== -->
+
+	<path id="catalina-ant-classpath">
+		<!-- We need the Catalina jars for Tomcat -->
+		<!--  * for other app servers - check the docs -->
+		<fileset dir="${appserver.lib}">
+			<include name="catalina-ant.jar" />
+		</fileset>
+	</path>
+
+	<taskdef name="install" classname="org.apache.catalina.ant.InstallTask">
+		<classpath refid="catalina-ant-classpath" />
+	</taskdef>
+	<taskdef name="reload" classname="org.apache.catalina.ant.ReloadTask">
+		<classpath refid="catalina-ant-classpath" />
+	</taskdef>
+	<taskdef name="list" classname="org.apache.catalina.ant.ListTask">
+		<classpath refid="catalina-ant-classpath" />
+	</taskdef>
+	<taskdef name="start" classname="org.apache.catalina.ant.StartTask">
+		<classpath refid="catalina-ant-classpath" />
+	</taskdef>
+	<taskdef name="stop" classname="org.apache.catalina.ant.StopTask">
+		<classpath refid="catalina-ant-classpath" />
+	</taskdef>
+
+	<target name="install" description="Install application in Tomcat">
+		<install url="${tomcat.manager.url}" username="${tomcat.manager.username}" password="${tomcat.manager.password}" path="/${name}" war="${name}" />
+	</target>
+
+	<target name="reload" description="Reload application in Tomcat">
+		<reload url="${tomcat.manager.url}" username="${tomcat.manager.username}" password="${tomcat.manager.password}" path="/${name}" />
+	</target>
+
+	<target name="start" description="Start Tomcat application">
+		<start url="${tomcat.manager.url}" username="${tomcat.manager.username}" password="${tomcat.manager.password}" path="/${name}" />
+	</target>
+
+	<target name="stop" description="Stop Tomcat application">
+		<stop url="${tomcat.manager.url}" username="${tomcat.manager.username}" password="${tomcat.manager.password}" path="/${name}" />
+	</target>
+
+	<target name="list" description="List Tomcat applications">
+		<list url="${tomcat.manager.url}" username="${tomcat.manager.username}" password="${tomcat.manager.password}" />
+	</target>
+
+	<!-- ================================= 
+          target: tomcat-stop  tomcat-start            
+         ================================= -->
+	<!-- - - - - - - - - - - - - - - - - - 
+          target: tomcat-validate                      
+         - - - - - - - - - - - - - - - - - -->
+	<target name="tomcat-validate">
+		<property environment="env" />
+		<fail unless="env.CATALINA_HOME" message="必须设定环境变量CATALINA_HOME" />
+		<property name="tomcat.home" value="${env.CATALINA_HOME}" />
+		<echo>tomcat.home="${tomcat.home}"</echo>
+
+		<available file="catalina.sh" filepath="${tomcat.home}/bin" type="file" property="tomcat.available" />
+		<echo>tomcat.available="${tomcat.available}"</echo>
+		<fail unless="tomcat.available" message="环境变量CATALINA_HOME下的子目录bin中没有catalina.bat" />
+	</target>
+
+	<!-- - - - - - - - - - - - - - - - - - 
+          target: tomcat-check-status                      
+         - - - - - - - - - - - - - - - - - -->
+	<target name="tomcat-check-status" depends="tomcat-validate" if="tomcat.available">
+		<waitfor maxwait="5" maxwaitunit="second" timeoutproperty="tomcat.status.stopped">
+			<http url="http://127.0.0.1:8070/" />
+		</waitfor>
+		<echo>tomcat.status.stopped = ${tomcat.status.stopped}</echo>
+	</target>
+
+	<target name="tomcat-stop" depends="tomcat-check-status,tomcat-validate" if="tomcat.available" description="--> 停止tomcat">
+		<fail if="tomcat.status.stopped" message="it's unnecessary to stop tomcat since it's not running" />
+		<echo>停止tomcat</echo>
+		<exec executable="sh" failonerror="true">
+			<arg value="-c" />
+			<arg value="${tomcat.home}/bin/catalina.sh stop" />
+		</exec>
+		<echo>tomcat已经停止</echo>
+	</target>
+
+	<target name="tomcat-start" depends="tomcat-check-status,tomcat-validate" if="tomcat.available" description="--> 启动tomcat">
+		<fail unless="tomcat.status.stopped" message="it's unnecessary to start tomcat since it's still running" />
+		<echo>启动tomcat</echo>
+		<exec executable="sh" failonerror="true">
+			<arg value="-c" />
+			<arg value="${tomcat.home}/bin/catalina.sh start" />
+		</exec>
+		<echo>tomcat已经启动</echo>
+	</target>
+
+	<!-- End Tomcat tasks -->
+
+
+	<!-- test tasks -->
+	<property name="test.unit.src.dir" value="test/unit" />
+	<property name="test.component.src.dir" value="test/component" />
+	<property name="test.system.src.dir" value="test/system" />
+	<property name="quality.dir" value="quality" />
+	<property name="quality.codestyle.dir" value="${quality.dir}/codestyle" />
+	<property name="quality.test.dir" value="${quality.dir}/test" />
+	<property name="quality.test.unit.dir" value="${quality.test.dir}/unit" />
+	<property name="quality.test.component.dir" value="${quality.test.dir}/component" />
+	<property name="quality.test.system.dir" value="${quality.test.dir}/system" />
+
+	<property name="build.test.unit.classes.dir" value="${build.dir}/test/unit" />
+	<property name="build.test.component.classes.dir" value="${build.dir}/test/component" />
+	<property name="build.test.system.classes.dir" value="${build.dir}/test/system" />
+	<property name="test.unit.data.dir" value="${quality.test.unit.dir}/data" />
+	<property name="test.unit.reports.dir" value="${quality.test.unit.dir}/reports" />
+	<property name="test.component.data.dir" value="${quality.test.component.dir}/data" />
+	<property name="test.component.reports.dir" value="${quality.test.component.dir}/reports" />
+	<property name="test.system.data.dir" value="${quality.test.system.dir}/data" />
+	<property name="test.system.reports.dir" value="${quality.test.system.dir}/reports" />
+
+	<path id="test-classpath">
+		<fileset dir="${web.dir}/WEB-INF/lib">
+			<include name="*.jar" />
+		</fileset>
+		<pathelement path="${build.dir}" />
+		<pathelement path="${build.test.unit.classes.dir}" />
+		<pathelement path="${build.test.component.classes.dir}" />
+		<pathelement path="${build.test.system.classes.dir}" />
+		<pathelement path="${test.unit.src.dir}" />
+		<pathelement path="${web.dir}/WEB-INF/classes" />
+	</path>
+
+
+	<target name="buildtests.unit" depends="build" description="Compile unit test tree java files">
+		<mkdir dir="${build.test.unit.classes.dir}" />
+		<javac destdir="${build.test.unit.classes.dir}" source="1.5" target="1.5" debug="true" encoding="utf-8" deprecation="false" optimize="false" failonerror="true">
+			<src path="${test.unit.src.dir}" />
+			<classpath refid="master-classpath" />
+		</javac>
+	</target>
+
+	<target name="buildtests.component" depends="buildtests.unit,dropTables,createTables" description="Compile component test tree java files">
+		<mkdir dir="${build.test.component.classes.dir}" />
+		<javac destdir="${build.test.component.classes.dir}" source="1.5" target="1.5" debug="true" encoding="utf-8" deprecation="false" optimize="false" failonerror="true">
+			<src path="${test.component.src.dir}" />
+			<classpath refid="master-classpath" />
+		</javac>
+	</target>
+
+	<target name="buildtests.system" depends="buildtests.component" description="Compile system test tree java files">
+		<mkdir dir="${build.test.system.classes.dir}" />
+		<javac destdir="${build.test.system.classes.dir}" source="1.5" target="1.5" debug="true" encoding="utf-8" deprecation="false" optimize="false" failonerror="true">
+			<src path="${test.system.src.dir}" />
+			<classpath refid="master-classpath" />
+		</javac>
+	</target>
+
+	<target name="tests.unit" depends="build, buildtests.unit, copymetafilestest" description="Run unit tests">
+		<mkdir dir="${test.unit.data.dir}" />
+		<mkdir dir="${test.unit.reports.dir}" />
+		<junit printsummary="false" forkmode="perBatch" haltonfailure="false" failureproperty="tests.failed" showoutput="true">
+			<classpath refid="test-classpath" />
+			<formatter type="brief" usefile="false" />
+			<formatter type="xml" />
+
+			<batchtest fork="yes" todir="${test.unit.data.dir}">
+				<fileset dir="${build.test.unit.classes.dir}">
+					<include name="**/*Tests.class" />
+					<include name="**/*Test.class" />
+					<include name="**/Test*.class" />
+					<!--exclude name="**/Jdbc*Tests.*" /-->
+				</fileset>
+			</batchtest>
+
+		</junit>
+
+		<fail if="tests.failed">
+            tests.failed=${tests.failed}
+            ***********************************************************
+            ***********************************************************
+            ****  One or more tests failed!  Check the output ...  ****
+            ***********************************************************
+            ***********************************************************
+        </fail>
+		<junitreport todir="${test.unit.data.dir}">
+			<fileset dir="${test.unit.data.dir}" id="id">
+				<include name="TEST-*.xml" />
+			</fileset>
+			<report format="frames" todir="${test.unit.reports.dir}" />
+		</junitreport>
+	</target>
+
+	<target name="tests.component" depends="build, buildtests.component, copymetafilestest" description="Run component tests">
+		<mkdir dir="${test.component.data.dir}" />
+		<mkdir dir="${test.component.reports.dir}" />
+		<junit printsummary="false" forkmode="perBatch" haltonfailure="false" failureproperty="tests.failed" showoutput="true">
+			<classpath refid="test-classpath" />
+			<formatter type="brief" usefile="false" />
+			<formatter type="xml" />
+
+			<batchtest fork="yes" todir="${test.component.data.dir}">
+				<fileset dir="${build.test.component.classes.dir}">
+					<include name="**/*Tests.class" />
+					<include name="**/*Test.class" />
+					<include name="**/Test*.class" />
+				</fileset>
+			</batchtest>
+
+		</junit>
+
+		<fail if="tests.failed">
+            tests.failed=${tests.failed}
+            ***********************************************************
+            ***********************************************************
+            ****  One or more tests failed!  Check the output ...  ****
+            ***********************************************************
+            ***********************************************************
+        </fail>
+		<junitreport todir="${test.component.data.dir}">
+			<fileset dir="${test.component.data.dir}" id="id">
+				<include name="TEST-*.xml" />
+			</fileset>
+			<report format="frames" todir="${test.component.reports.dir}" />
+		</junitreport>
+	</target>
+
+	<target name="tests.system" depends="build, buildtests.system, copymetafilestest" description="Run system tests">
+		<mkdir dir="${test.system.data.dir}" />
+		<mkdir dir="${test.system.reports.dir}" />
+		<junit printsummary="false" forkmode="perBatch" haltonfailure="false" failureproperty="tests.failed" showoutput="true">
+			<classpath refid="test-classpath" />
+			<formatter type="brief" usefile="false" />
+			<formatter type="xml" />
+
+			<batchtest fork="yes" todir="${test.system.data.dir}">
+				<fileset dir="${build.test.system.classes.dir}">
+					<include name="**/*Tests.class" />
+					<include name="**/*Test.class" />
+					<include name="**/Test*.class" />
+				</fileset>
+			</batchtest>
+
+		</junit>
+
+		<fail if="tests.failed">
+            tests.failed=${tests.failed}
+            ***********************************************************
+            ***********************************************************
+            ****  One or more tests failed!  Check the output ...  ****
+            ***********************************************************
+            ***********************************************************
+        </fail>
+		<junitreport todir="${test.system.data.dir}">
+			<fileset dir="${test.system.data.dir}" id="id">
+				<include name="TEST-*.xml" />
+			</fileset>
+			<report format="frames" todir="${test.system.reports.dir}" />
+		</junitreport>
+	</target>
+
+	<!-- ================================= 
+          target: all              
+         ================================= -->
+	<target name="all" depends="tests.unit, dbTests, createwar" description="all include tests, createwar">
+
+	</target>
+
+	<!-- ================================= 
+          target: start-hsql              
+         ================================= -->
+	<target name="start-hsql" depends="" description="start HSQL DataBase">
+		<java fork="true" spawn="true" classname="org.hsqldb.Server">
+			<arg value="-database" />
+			<arg value="test" />
+			<classpath>
+				<pathelement location="master-classpath" />
+			</classpath>
+		</java>
+	</target>
+
+	<!-- Start the HSQL DB server -->
+	<property name="database.dir" value="database" />
+	<target name="startdb" description="Run HSQL database server with clean DB">
+		<!-- Delete database files -->
+		<mkdir dir="${database.dir}" />
+		<delete dir="${database.dir}" />
+		<java classname="org.hsqldb.Server" fork="yes" classpathref="master-classpath" failonerror="true">
+			<arg value="-database.0" />
+			<arg value="file:${database.dir}/db" />
+			<arg value="-dbname.0 xdb" />
+		</java>
+	</target>
+
+	<!-- Start the HSQL DB browser tool -->
+	<target name="dbmanager-hsql" description="Start HSQL DB manager">
+		<java classname="org.hsqldb.util.DatabaseManagerSwing" fork="yes" classpathref="master-classpath" failonerror="true">
+			<arg value="-url" />
+			<arg value="jdbc:hsqldb:hsql://localhost/" />
+			<arg value="-driver" />
+			<arg value="org.hsqldb.jdbcDriver" />
+		</java>
+	</target>
+
+	<target name="createTables">
+		<echo message="CREATE TABLES USING: ${db.driver} ${db.url}" />
+		<sql driver="${db.driver}" url="${db.url}" userid="${db.user}" password="${db.pw}" onerror="continue" src="db/${ant.project.name}-ddl.sql">
+			<classpath refid="master-classpath" />
+		</sql>
+	</target>
+
+	<target name="dropTables">
+		<echo message="DROP TABLES USING: ${db.driver} ${db.url}" />
+		<sql driver="${db.driver}" url="${db.url}" userid="${db.user}" password="${db.pw}" onerror="continue">
+			<classpath refid="master-classpath" />
+
+        DROP TABLE products;
+
+        </sql>
+	</target>
+
+	<target name="loadData">
+		<echo message="LOAD DATA USING: ${db.driver} ${db.url}" />
+		<sql driver="${db.driver}" url="${db.url}" userid="${db.user}" password="${db.pw}" onerror="continue" src="db/load_data.sql">
+			<classpath refid="master-classpath" />
+		</sql>
+	</target>
+
+	<target name="printData">
+		<echo message="PRINT DATA USING: ${db.driver} ${db.url}" />
+		<sql driver="${db.driver}" url="${db.url}" userid="${db.user}" password="${db.pw}" onerror="continue" print="true">
+			<classpath refid="master-classpath" />
+
+        SELECT * FROM products;
+
+        </sql>
+	</target>
+
+	<target name="clearData">
+		<echo message="CLEAR DATA USING: ${db.driver} ${db.url}" />
+		<sql driver="${db.driver}" url="${db.url}" userid="${db.user}" password="${db.pw}" onerror="continue">
+			<classpath refid="master-classpath" />
+
+        DELETE FROM products;
+
+        </sql>
+	</target>
+
+	<target name="shutdownDb">
+		<echo message="SHUT DOWN DATABASE USING: ${db.driver} ${db.url}" />
+		<sql driver="${db.driver}" url="${db.url}" userid="${db.user}" password="${db.pw}" onerror="continue">
+			<classpath refid="master-classpath" />
+
+        SHUTDOWN;
+
+        </sql>
+	</target>
+
+	<target name="dbTests" depends="build, buildtests.unit,dropTables,createTables" description="Run db tests">
+		<junit printsummary="on" fork="false" haltonfailure="false" failureproperty="tests.failed" showoutput="true">
+			<classpath refid="test-classpath" />
+			<formatter type="brief" usefile="false" />
+
+			<batchtest>
+				<fileset dir="${build.test.unit.classes.dir}">
+					<include name="**/Jdbc*Tests.*" />
+					<include name="**/Hibernate*Tests.*" />
+				</fileset>
+			</batchtest>
+
+		</junit>
+
+		<fail if="tests.failed">
+            tests.failed=${tests.failed}
+            ***********************************************************
+            ***********************************************************
+            ****  One or more tests failed!  Check the output ...  ****
+            ***********************************************************
+            ***********************************************************
+        </fail>
+	</target>
+
+	<!-- Useful shortcuts -->
+	<patternset id="meta.files">
+		<include name="**/*.xml" />
+		<include name="**/*.properties" />
+	</patternset>
+
+	<!-- Copy metadata to build classpath -->
+	<target name="copymetafiles">
+		<mkdir dir="${build.dir}" />
+		<copy todir="${build.dir}">
+			<fileset dir="${src.dir}">
+				<patternset refid="meta.files" />
+			</fileset>
+		</copy>
+	</target>
+
+	<!-- Copy metadata to build classpath -->
+	<target name="copymetafilestest">
+		<mkdir dir="${build.test.unit.classes.dir}" />
+		<copy todir="${build.test.unit.classes.dir}">
+			<fileset dir="${test.unit.src.dir}">
+				<patternset refid="meta.files" />
+			</fileset>
+		</copy>
+	</target>
+
+	<!-- ================================= 
+          target: hibernate              
+         ================================= -->
+	<!-- Hibernate Tools import -->
+	<taskdef name="hibernatetool" classname="org.hibernate.tool.ant.HibernateToolTask" classpathref="master-classpath" />
+
+	<!-- Export the database schema -->
+	<target name="schemaexport" depends="compile, copymetafiles" description="Exports a generated schema to DB and file">
+
+		<hibernatetool destdir="${basedir}">
+			<classpath path="${build.dir}" />
+			<configuration configurationfile="${build.dir}/hibernate.cfg.xml" />
+			<hbm2ddl drop="true" create="true" export="true" outputfilename="db/${ant.project.name}-ddl.sql" delimiter=";" format="true" />
+		</hibernatetool>
+	</target>
+	<!-- ================================= 
+          target: checkstyle include source code and test source code              
+         ================================= -->
+	<taskdef resource="checkstyletask.properties" classpath="${web.dir}/WEB-INF/lib/checkstyle-all-5.0.jar" />
+
+	<target name="checkstyle" depends="" description="--> description">
+		<mkdir dir="${quality.codestyle.dir}" />
+		<checkstyle config="quality/xmgl.checkstyle">
+			<fileset dir="${src.dir}" includes="**/*.java" />
+			<formatter type="plain" />
+			<formatter type="xml" toFile="${quality.codestyle.dir}/checkstyle_src.xml" />
+		</checkstyle>
+		<checkstyle config="quality/xmgl.checkstyle">
+			<fileset dir="${test.unit.src.dir}" includes="**/*.java" />
+			<formatter type="plain" />
+			<formatter type="xml" toFile="${quality.codestyle.dir}/checkstyle_test.xml" />
+		</checkstyle>
+	</target>
+
+</project>

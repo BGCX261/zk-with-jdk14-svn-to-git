@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<!-- 适用于：迭代开发，组件测试 还需完善-->
+<log4j:configuration xmlns:log4j='http://jakarta.apache.org/log4j/'>
+	<appender name="FILE" class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="File" value="logs/output.log" />
+		<param name="Append" value="true" />
+		<!-- 日期格式的开头，仅用.与带单引号'.'等价，虽然参考书中给出的是带单引号的 -->
+		<!-- 测试中可以带分钟.yyyy-MM-dd-HH-mm，实际中肯定不会 -->
+		<param name="DatePattern" value=".yyyy-MM-dd-HH-mm" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d [%-5p] %l - %m%n" />
+		</layout>
+	</appender>
+
+	<appender name="Hibernate_FILE" class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="File" value="logs/Hibernate.log" />
+		<param name="Append" value="true" />
+		<!-- 日期格式的开头，仅用.与带单引号'.'等价，虽然参考书中给出的是带单引号的 -->
+		<!-- 测试中可以带分钟.yyyy-MM-dd-HH-mm，实际中肯定不会 -->
+		<param name="DatePattern" value=".yyyy-MM-dd-HH-mm" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d [%-5p] %l - %m%n" />
+		</layout>
+	</appender>
+
+	<appender name="SQL_FILE" class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="File" value="logs/SQL.log" />
+		<param name="Append" value="true" />
+		<!-- 日期格式的开头，仅用.与带单引号'.'等价，虽然参考书中给出的是带单引号的 -->
+		<!-- 测试中可以带分钟.yyyy-MM-dd-HH-mm，实际中肯定不会 -->
+		<param name="DatePattern" value=".yyyy-MM-dd-HH-mm" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d [%-5p] %l - %m%n" />
+		</layout>
+	</appender>
+
+	<appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d [%t] %-5p %C:%M - %m%n" />
+		</layout>
+	</appender>
+	<!-- 异步方式对于I/O瓶颈有帮助，但是对于CPU瓶颈反而有害 -->
+	<appender name="ASYNC_FILE" class="org.apache.log4j.AsyncAppender">
+		<param name="BufferSize" value="512" />
+		<appender-ref ref="FILE" />
+	</appender>
+
+	<category name="org.hibernate">
+		<priority value="TRACE" />
+		<appender-ref ref="Hibernate_FILE" />
+	</category>
+
+	<category name="org.hibernate.SQL">
+		<priority value="TRACE" />
+		<appender-ref ref="SQL_FILE" />
+	</category>
+
+	<category name="org.hibernate.type">
+		<priority value="TRACE" />
+		<appender-ref ref="ASYNC_FILE" />
+	</category>
+
+	<category name="org.springframework">
+		<priority value="TRACE" />
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="ASYNC_FILE" />
+	</category>
+
+	<category name="com.springinaction">
+		<priority value="TRACE" />
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="ASYNC_FILE" />
+	</category>
+
+</log4j:configuration>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	用于项目管理的规范
+-->
+
+<!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.2//EN" "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
+<module name="Checker">
+	<property name="severity" value="warning" />
+	<module name="TreeWalker">
+		<!-- Item 8 - Always override hashCode when you override equals -->
+		<module name="EqualsHashCode" />
+
+		<!-- Item 12 - Make all fields private -->
+		<module name="VisibilityModifier" />
+
+
+		<!-- Item 28 - Write doc comments for all exposed API elements -->
+		<module name="JavadocType">
+			<property name="scope" value="protected" />
+		</module>
+		<module name="JavadocMethod"><!-- also covers Item 44 -->
+			<property name="scope" value="protected" />
+		</module>
+		<module name="JavadocVariable">
+			<property name="scope" value="protected" />
+		</module>
+
+		<!-- Item 38 - Adhere to generally accepted naming conventions -->
+		<module name="PackageName">
+			<!-- no uppercase letters, between 2 and 8 characters -->
+			<property name="format"
+				value="^[a-z]+(\.[a-z][a-z0-9]{1,10})*$" />
+		</module>
+		<module name="TypeName" />
+		<module name="ConstantName" />
+		<module name="LocalFinalVariableName" />
+		<module name="LocalVariableName" />
+		<module name="MemberName" />
+		<module name="MethodName" />
+		<module name="ParameterName" />
+		<module name="StaticVariableName" />
+
+		<!-- Item 47 - Don't ignore exceptions -->
+		<module name="EmptyBlock">
+			<property name="tokens" value="LITERAL_CATCH" />
+			<!-- require a comment, change to stmt to require a statement -->
+			<property name="option" value="text" />
+		</module>
+
+		<module name="LineLength">
+			<property name="max" value="100" />
+		</module>
+
+		<module name="MethodLength">
+			<property name="max" value="300" />
+			<property name="tokens" value="METHOD_DEF" />
+		</module>
+		<module name="MethodLength">
+			<property name="max" value="500" />
+			<property name="tokens" value="CTOR_DEF" />
+		</module>
+		
+		<!-- See http://checkstyle.sf.net/config_metrics.html -->
+		<module name="CyclomaticComplexity">
+			<property name="max" value="10" />
+		</module>
+		<module name="NPathComplexity">
+			<property name="max" value="200" />
+		</module>
+		<module name="BooleanExpressionComplexity">
+			<property name="max" value="3" />
+		</module>
+		<module name="ClassDataAbstractionCoupling">
+			<property name="max" value="7" />
+		</module>
+		<module name="ClassFanOutComplexity">
+			<property name="max" value="20" />
+		</module>
+	</module>
+	
+	<!-- See http://checkstyle.sf.net/config_duplicates.html -->
+	<!-- Performs a line-by-line comparison of all code lines and 
+		reports duplicate code. -->
+	<module name="StrictDuplicateCode">
+		<property name="min" value="12" />
+	</module>
+
+</module>
